@@ -1,6 +1,7 @@
 package com.github.luckyhash.ui.screens.stats
 
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Devices.PIXEL_TABLET
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.luckyhash.data.MiningStats
+import com.github.luckyhash.ui.theme.LuckyHashTheme
 import org.koin.androidx.compose.koinViewModel
 import java.util.concurrent.TimeUnit
 
@@ -215,30 +217,34 @@ fun StatsRow(label: String, value: String) {
     }
 }
 
-@Preview(showBackground = true, device = PIXEL_TABLET)
+@Preview(showBackground = true, device = PIXEL_TABLET, uiMode = Configuration.ORIENTATION_LANDSCAPE)
 @Composable
 private fun Preview1() {
-    StatsScreen(
-        stats = MiningStats(
-            isRunning = true
-        ),
-        startMining = {},
-        stopMining = {},
-        onNavigateToConfig = {}
-    )
+    LuckyHashTheme {
+        StatsScreen(
+            stats = MiningStats(
+                isRunning = true
+            ),
+            startMining = {},
+            stopMining = {},
+            onNavigateToConfig = {}
+        )
+    }
 }
 
-@Preview(showBackground = true, device = PIXEL_TABLET)
+@Preview(showBackground = true, device = PIXEL_TABLET, uiMode = Configuration.ORIENTATION_LANDSCAPE)
 @Composable
 private fun Preview2() {
-    StatsScreen(
-        stats = MiningStats(
-            isRunning = false
-        ),
-        startMining = {},
-        stopMining = {},
-        onNavigateToConfig = {}
-    )
+    LuckyHashTheme {
+        StatsScreen(
+            stats = MiningStats(
+                isRunning = false
+            ),
+            startMining = {},
+            stopMining = {},
+            onNavigateToConfig = {}
+        )
+    }
 }
 
 // Helper functions

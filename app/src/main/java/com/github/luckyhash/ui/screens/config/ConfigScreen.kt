@@ -1,6 +1,6 @@
 package com.github.luckyhash.ui.screens.config
 
-import android.content.Intent
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,13 +25,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Devices.PIXEL_TABLET
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.luckyhash.data.MiningConfig
-import com.github.luckyhash.domain.MiningService
 import com.github.luckyhash.ui.components.BackgroundCard
 import com.github.luckyhash.ui.components.DifficultyCard
 import com.github.luckyhash.ui.components.PerformanceCard
+import com.github.luckyhash.ui.theme.LuckyHashTheme
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
@@ -39,17 +40,34 @@ import kotlin.math.roundToInt
 @Composable
 fun ConfigScreen(
     onNavigateBack: () -> Unit,
+    restartService: () -> Unit,
     viewModel: ConfigViewModel = koinViewModel()
 ) {
-    val context = LocalContext.current
     val config by viewModel.miningConfig.collectAsState()
 
-    // Local state for form values
+    ConfigScreen(
+        onNavigateBack = onNavigateBack,
+        onSaveConfig = { newConfig ->
+            viewModel.saveConfig(newConfig)
+            onNavigateBack()
+            restartService()
+        },
+        config = config
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ConfigScreen(
+    config: MiningConfig,
+    onNavigateBack: () -> Unit,
+    onSaveConfig: (MiningConfig) -> Unit
+) {
+
     var threads by remember { mutableIntStateOf(config.threads) }
     var runInBackground by remember { mutableStateOf(config.runInBackground) }
     var difficultyTarget by remember { mutableIntStateOf(config.difficultyTarget) }
 
-    // Update local state when config changes
     if (threads != config.threads) threads = config.threads
     if (runInBackground != config.runInBackground) runInBackground = config.runInBackground
     if (difficultyTarget != config.difficultyTarget) difficultyTarget = config.difficultyTarget
@@ -108,21 +126,12 @@ fun ConfigScreen(
 
             Button(
                 onClick = {
-                    // Save configuration
                     val newConfig = MiningConfig(
                         threads = threads,
                         runInBackground = runInBackground,
                         difficultyTarget = difficultyTarget
                     )
-                    viewModel.saveConfig(newConfig)
-
-                    // Restart service if needed
-                    val intent = Intent(context, MiningService::class.java)
-                    context.stopService(intent)
-                    if (runInBackground) {
-                        context.startService(intent)
-                    }
-
+                    onSaveConfig(newConfig)
                     onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -130,5 +139,17 @@ fun ConfigScreen(
                 Text("Save Settings")
             }
         }
+    }
+}
+
+@Preview(showBackground = true, device = PIXEL_TABLET, uiMode = Configuration.ORIENTATION_LANDSCAPE)
+@Composable
+private fun Preview() {
+    LuckyHashTheme {
+        ConfigScreen(
+            config = MiningConfig(),
+            onSaveConfig = {},
+            onNavigateBack = {}
+        )
     }
 }
