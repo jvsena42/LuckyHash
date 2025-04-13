@@ -1,7 +1,6 @@
 package com.github.luckyhash.ui.screens.stats
 
 
-import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,11 +30,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Devices.PIXEL_TABLET
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.luckyhash.data.MiningStats
-import com.github.luckyhash.domain.MiningService
 import org.koin.androidx.compose.koinViewModel
 import java.util.concurrent.TimeUnit
 
@@ -43,18 +42,37 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun StatsScreen(
     onNavigateToConfig: () -> Unit,
+    startService: () -> Unit,
+    stopService: () -> Unit,
     viewModel: StatsViewModel = koinViewModel()
 ) {
-    val context = LocalContext.current
     val stats by viewModel.miningStats.collectAsState()
-    val config by viewModel.miningConfig.collectAsState()
 
-    // Start service if configured to run in background
     LaunchedEffect(Unit) {
-        if (config.runInBackground) {
-            context.startService(Intent(context, MiningService::class.java))
+        viewModel.eventFlow.collect { event ->
+            when (event) {
+                StatsEvents.StartService -> startService()
+                StatsEvents.StopService -> stopService()
+            }
         }
     }
+
+    StatsScreen(
+        stats = stats,
+        onNavigateToConfig = onNavigateToConfig,
+        startMining = { viewModel.startMining() },
+        stopMining = { viewModel.stopMining() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StatsScreen(
+    stats: MiningStats,
+    onNavigateToConfig: () -> Unit,
+    startMining: () -> Unit,
+    stopMining: () -> Unit
+) {
 
     Scaffold(
         topBar = {
@@ -66,13 +84,13 @@ fun StatsScreen(
             Row {
                 if (stats.isRunning) {
                     FloatingActionButton(
-                        onClick = { viewModel.stopMining() }
+                        onClick = stopMining
                     ) {
                         Icon(Icons.Default.Close, contentDescription = "Stop Mining")
                     }
                 } else {
                     FloatingActionButton(
-                        onClick = { viewModel.startMining() }
+                        onClick = startMining
                     ) {
                         Icon(Icons.Default.PlayArrow, contentDescription = "Start Mining")
                     }
@@ -195,6 +213,32 @@ fun StatsRow(label: String, value: String) {
             style = MaterialTheme.typography.bodyLarge
         )
     }
+}
+
+@Preview(showBackground = true, device = PIXEL_TABLET)
+@Composable
+private fun Preview1() {
+    StatsScreen(
+        stats = MiningStats(
+            isRunning = true
+        ),
+        startMining = {},
+        stopMining = {},
+        onNavigateToConfig = {}
+    )
+}
+
+@Preview(showBackground = true, device = PIXEL_TABLET)
+@Composable
+private fun Preview2() {
+    StatsScreen(
+        stats = MiningStats(
+            isRunning = false
+        ),
+        startMining = {},
+        stopMining = {},
+        onNavigateToConfig = {}
+    )
 }
 
 // Helper functions

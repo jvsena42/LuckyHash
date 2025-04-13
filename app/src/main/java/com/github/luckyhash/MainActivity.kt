@@ -19,6 +19,8 @@ import androidx.compose.material3.Surface
 import androidx.navigation.compose.rememberNavController
 import com.github.luckyhash.ui.navigation.AppNavHost
 import android.Manifest
+import android.content.Intent
+import com.github.luckyhash.domain.MiningService
 
 class MainActivity : ComponentActivity() {
 
@@ -42,7 +44,20 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    AppNavHost(navController = navController)
+                    AppNavHost(
+                        navController = navController,
+                        startService = {
+                            startService(
+                                Intent(
+                                    this@MainActivity,
+                                    MiningService::class.java
+                                )
+                            )
+                        },
+                        stopService = {
+                            //TODO IMPLEMENT
+                        }
+                    )
                 }
             }
         }

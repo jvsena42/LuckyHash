@@ -8,11 +8,17 @@ import com.github.luckyhash.ui.screens.config.ConfigScreen
 import com.github.luckyhash.ui.screens.stats.StatsScreen
 
 @Composable
-fun AppNavHost(navController: NavHostController) {
+fun AppNavHost(
+    navController: NavHostController,
+    startService: () -> Unit,
+    stopService: () -> Unit,
+) {
     NavHost(navController = navController, startDestination = Screen.Stats.route) {
         composable(Screen.Stats.route) {
             StatsScreen(
-                onNavigateToConfig = { navController.navigate(Screen.Config.route) }
+                onNavigateToConfig = { navController.navigate(Screen.Config.route) },
+                startService = startService,
+                stopService = stopService
             )
         }
         composable(Screen.Config.route) {
