@@ -11,12 +11,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.github.luckyhash.domain.MiningRepository
+import com.github.luckyhash.ui.screens.config.ConfigViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-class LuckyHashApplication: Application() {
+class LuckyHashApplication : Application() {
 
     companion object {
         const val MINING_CHANNEL_ID = "mining_notification_channel"
@@ -50,7 +52,8 @@ class LuckyHashApplication: Application() {
                 description = descriptionText
             }
 
-            val notificationManager = getSystemService(this@LuckyHashApplication, NotificationManager::class.java)
+            val notificationManager =
+                getSystemService(this@LuckyHashApplication, NotificationManager::class.java)
             notificationManager?.createNotificationChannel(channel)
         }
     }
@@ -75,7 +78,7 @@ private val repositoryModule = module {
 }
 
 private val viewmodelModule = module {
-
+    viewModel<ConfigViewModel> { ConfigViewModel(miningRepository = get()) }
 }
 
 private val utilModule = module {
