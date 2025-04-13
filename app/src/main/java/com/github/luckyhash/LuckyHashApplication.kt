@@ -1,16 +1,20 @@
 package com.github.luckyhash
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.net.ConnectivityManager
+import android.os.Build
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.github.luckyhash.domain.MiningRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
-import androidx.datastore.preferences.core.Preferences
-import com.github.luckyhash.domain.MiningRepository
 
 class LuckyHashApplication: Application() {
 
@@ -20,6 +24,7 @@ class LuckyHashApplication: Application() {
 
     override fun onCreate() {
         super.onCreate()
+        createNotificationChannel()
         startKoin {
             androidLogger()
             androidContext(this@LuckyHashApplication)
@@ -34,30 +39,45 @@ class LuckyHashApplication: Application() {
             )
         }
     }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "Bitcoin Lottery Mining"
+            val descriptionText = "Channel for Bitcoin Lottery Mining Service"
+            val importance = NotificationManager.IMPORTANCE_LOW
+
+            val channel = NotificationChannel(MINING_CHANNEL_ID, name, importance).apply {
+                description = descriptionText
+            }
+
+            val notificationManager = getSystemService(this@LuckyHashApplication, NotificationManager::class.java)
+            notificationManager?.createNotificationChannel(channel)
+        }
+    }
 }
 
-val networkModule = module {
+private val networkModule = module {
     single<ConnectivityManager> {
         androidContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     }
 }
 
-val databaseModule = module {
+private val databaseModule = module {
 
 }
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "mining_preferences")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "mining_preferences")
 
-val repositoryModule = module {
+private val repositoryModule = module {
     single {
         MiningRepository(androidContext().dataStore)
     }
 }
 
-val viewmodelModule = module {
+private val viewmodelModule = module {
 
 }
 
-val utilModule = module {
+private val utilModule = module {
 
 }
