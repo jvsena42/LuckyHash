@@ -79,3 +79,6 @@ LuckyHash is built natively for Android with a focus on performance and usabilit
 > Powered by Kotlin, Compose, and the Bitcoin spirit.
 
 ---
+
+Pay me a coffee to speed up this project
+fourgrill38@walletofsatoshi.com
