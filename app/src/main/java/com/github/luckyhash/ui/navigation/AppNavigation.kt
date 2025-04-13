@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.github.luckyhash.ui.screens.config.ConfigScreen
+import com.github.luckyhash.ui.screens.stats.StatsScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
