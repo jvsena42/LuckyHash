@@ -1,5 +1,3 @@
----
-
 # 🎰 LuckyHash
 
 **Mine Bitcoin. Win Big. All while watching your favorite show.**
