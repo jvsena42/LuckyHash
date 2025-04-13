@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.net.ConnectivityManager
 import android.os.Build
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -53,9 +52,8 @@ class LuckyHashApplication : Application() {
                 description = descriptionText
             }
 
-            val notificationManager =
-                getSystemService(this@LuckyHashApplication, NotificationManager::class.java)
-            notificationManager?.createNotificationChannel(channel)
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
         }
     }
 }
