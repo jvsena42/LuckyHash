@@ -57,7 +57,7 @@ dependencies {
     implementation(libs.koin.compose)
     implementation(libs.koin.android)
     implementation(libs.koin.test)
-
+    implementation("androidx.datastore:datastore-preferences:1.1.4")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
