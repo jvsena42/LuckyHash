@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.github.luckyhash.domain.MiningRepository
 import com.github.luckyhash.ui.screens.config.ConfigViewModel
+import com.github.luckyhash.ui.screens.stats.StatsViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -79,6 +80,7 @@ private val repositoryModule = module {
 
 private val viewmodelModule = module {
     viewModel<ConfigViewModel> { ConfigViewModel(miningRepository = get()) }
+    viewModel<StatsViewModel> { StatsViewModel(miningRepository = get()) }
 }
 
 private val utilModule = module {
