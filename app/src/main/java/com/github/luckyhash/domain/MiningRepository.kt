@@ -18,12 +18,12 @@ import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.util.Random
 
-
-// Extension for DataStore
-
 class MiningRepository(
     private val dataStore: DataStore<androidx.datastore.preferences.core.Preferences>
 ) {
+
+    //TODO GET MEMPOOL
+    //TODO INTEGRATE WITH exSat https://chatgpt.com/share/67fbaa21-31e0-8004-b0c8-36cf3a20d88b
 
     // Preference keys
     private object PreferencesKeys {

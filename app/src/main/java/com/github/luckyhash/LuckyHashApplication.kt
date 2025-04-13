@@ -10,10 +10,13 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import com.github.luckyhash.domain.MiningRepository
 
 class LuckyHashApplication: Application() {
+
+    companion object {
+        const val MINING_CHANNEL_ID = "mining_notification_channel"
+    }
 
     override fun onCreate() {
         super.onCreate()

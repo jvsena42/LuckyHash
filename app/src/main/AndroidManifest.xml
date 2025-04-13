@@ -13,12 +13,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LuckyHash"
         tools:targetApi="31">
+        <service
+            android:name=".domain.MiningService"
+            android:foregroundServiceType="dataSync"
+            android:enabled="true"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.LuckyHash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
