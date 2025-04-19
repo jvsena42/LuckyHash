@@ -32,7 +32,9 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor_version" }
 ktor-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor_version" }
 ktor-logback = { group = "io.ktor", name = "ktor-client-logging-jvm", version.ref = "ktor_version" }
-ktor-serialization = { group = "io.ktor", name = "ktor-client-serialization-jvm", version.ref = "ktor_version" }
+ktor-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor_version" }
+ktor-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor_version" }
+ktor-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor_version" }
 
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
 koin-core = { module = "io.insert-koin:koin-core" }

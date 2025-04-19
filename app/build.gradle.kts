@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.ktor.cio)
     implementation(libs.ktor.logback)
     implementation(libs.ktor.serialization)
+    implementation(libs.ktor.android)
+    implementation(libs.ktor.negotiation)
 
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.core)
