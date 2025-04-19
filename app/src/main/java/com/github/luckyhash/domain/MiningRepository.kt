@@ -86,6 +86,7 @@ class MiningRepository(
 
     // Start mining
     fun startMining(threads: Int = 1) {
+        Log.d(TAG, "startMining: threads: $threads")
         if (isRunning) return
 
         isRunning = true
@@ -139,6 +140,7 @@ class MiningRepository(
     }
 
     private suspend fun fetchLatestBlockTemplate(): BlockTemplate = withContext(Dispatchers.IO) {
+        Log.d(TAG, "fetchLatestBlockTemplate: ")
         // Get recent blocks from mempool.space API
         val blocksResponse: MempoolBlocksResponse = client.get("https://mempool.space/api/v1/blocks").body()
 
