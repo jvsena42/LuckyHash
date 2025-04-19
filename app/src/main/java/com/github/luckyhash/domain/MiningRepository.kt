@@ -27,7 +27,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.math.BigInteger
 import java.security.MessageDigest
-import java.util.Random
 
 class MiningRepository(
     private val dataStore: DataStore<androidx.datastore.preferences.core.Preferences>
@@ -56,7 +55,6 @@ class MiningRepository(
     // Coroutine scope for mining
     private val miningScope = CoroutineScope(Dispatchers.Default)
     private var isRunning = false
-    private val random = Random()
     private val md = MessageDigest.getInstance("SHA-256")
 
     private val client = HttpClient(Android) {
