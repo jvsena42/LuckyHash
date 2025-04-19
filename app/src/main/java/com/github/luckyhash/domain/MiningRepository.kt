@@ -1,5 +1,6 @@
 package com.github.luckyhash.domain
 
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -37,6 +38,10 @@ class MiningRepository(
         val THREADS = intPreferencesKey("threads")
         val RUN_IN_BACKGROUND = booleanPreferencesKey("run_in_background")
         val DIFFICULTY_TARGET = intPreferencesKey("difficulty_target")
+    }
+
+    companion object {
+        const val TAG = "MiningRepository"
     }
 
     // Mining statistics
@@ -96,6 +101,7 @@ class MiningRepository(
         miningScope.launch {
             try {
                 val blockTemplate = fetchLatestBlockTemplate()
+                Log.d(TAG, "startMining: blockTemplate: $blockTemplate")
                 _miningStats.value = _miningStats.value.copy(currentBlock = blockTemplate)
 
                 // Start mining on multiple threads
@@ -106,6 +112,7 @@ class MiningRepository(
                 }
             } catch (e: Exception) {
                 // If API fetch fails, use a fallback block template
+                Log.d(TAG, "startMining: Swithing to failback template. Exception ${e.stackTraceToString()}")
                 val fallbackTemplate = BlockTemplate(
                     previousBlockHash = "000000000000000000037c7c32a34baa4d5f4fd0ca5e8678841d4d219f034749",
                     merkleRoot = "bb37f74134215f0c1b499d42342befed3babe1a0285cd212b50a6f831cc38f75",
@@ -180,7 +187,7 @@ class MiningRepository(
                 // If we match our target difficulty, we found a valid share
                 if (leadingZeros >= _miningStats.value.targetDifficulty) {
                     val hashHex = hash.joinToString("") { String.format("%02x", it) }
-                    println("Found valid share! Nonce: $nonce, Hash: $hashHex")
+                    Log.i(TAG, "mine: Found valid share! Nonce: $nonce, Hash: $hashHex")
                 }
             }
 
