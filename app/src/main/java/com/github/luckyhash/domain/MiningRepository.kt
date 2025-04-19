@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import com.github.luckyhash.data.BlockInfo
 import com.github.luckyhash.data.BlockTemplate
-import com.github.luckyhash.data.MempoolBlocksResponse
+import com.github.luckyhash.data.MempoolBlock
 import com.github.luckyhash.data.MiningConfig
 import com.github.luckyhash.data.MiningStats
 import io.ktor.client.HttpClient
@@ -142,15 +142,15 @@ class MiningRepository(
     private suspend fun fetchLatestBlockTemplate(): BlockTemplate = withContext(Dispatchers.IO) {
         Log.d(TAG, "fetchLatestBlockTemplate: ")
         // Get recent blocks from mempool.space API
-        val blocksResponse: MempoolBlocksResponse = client.get("https://mempool.space/api/v1/blocks").body()
+        val blocksResponse: List<MempoolBlock> = client.get("https://mempool.space/api/v1/blocks").body()
 
-        if (blocksResponse.blocks.isEmpty()) {
+        if (blocksResponse.isEmpty()) {
             throw Exception("No blocks returned from API")
         }
 
         // Get the latest block details
-        val latestBlock = blocksResponse.blocks.first()
-        val blockInfo: BlockInfo = client.get("https://mempool.space/api/block/${latestBlock.hash}").body()
+        val latestBlock = blocksResponse.first()
+        val blockInfo: BlockInfo = client.get("https://mempool.space/api/block/${latestBlock.id}").body()
 
         // Create a block template from the latest block
         return@withContext BlockTemplate(
