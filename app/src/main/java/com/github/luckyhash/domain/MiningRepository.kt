@@ -167,12 +167,12 @@ class MiningRepository(
 
         // Create a block template from the latest block
         return@withContext BlockTemplate(
-            version = blockInfo.version,
+            version = blockInfo.version.toInt(),
             previousBlockHash = blockInfo.previousblockhash,
             merkleRoot = blockInfo.merkle_root,
             timestamp = blockInfo.timestamp,
             bits = blockInfo.bits.toString(16), // Convert to hex string
-            height = blockInfo.height,
+            height = blockInfo.height.toInt(),
             difficulty = latestBlock.difficulty.roundToInt()
         )
     }
