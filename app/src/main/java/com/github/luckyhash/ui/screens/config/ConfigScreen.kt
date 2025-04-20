@@ -30,7 +30,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.luckyhash.data.MiningConfig
 import com.github.luckyhash.ui.components.BackgroundCard
-import com.github.luckyhash.ui.components.DifficultyCard
 import com.github.luckyhash.ui.components.PerformanceCard
 import com.github.luckyhash.ui.theme.LuckyHashTheme
 import org.koin.androidx.compose.koinViewModel
@@ -52,7 +51,8 @@ fun ConfigScreen(
             onNavigateBack()
             restartService()
         },
-        config = config
+        config = config,
+        onThreadsUpdate = { threads -> viewModel.saveConfig(config.copy(threads = threads)) }
     )
 }
 
@@ -61,6 +61,7 @@ fun ConfigScreen(
 fun ConfigScreen(
     config: MiningConfig,
     onNavigateBack: () -> Unit,
+    onThreadsUpdate: (Int) -> Unit,
     onSaveConfig: (MiningConfig) -> Unit
 ) {
 
@@ -74,9 +75,6 @@ fun ConfigScreen(
 
     // Thread slider value
     var threadSliderValue by remember { mutableFloatStateOf(threads.toFloat()) }
-
-    // Difficulty slider value
-    var difficultySliderValue by remember { mutableFloatStateOf(difficultyTarget.toFloat()) }
 
     Scaffold(
         topBar = {
@@ -103,15 +101,7 @@ fun ConfigScreen(
                 onThreadSliderChange = { value ->
                     threadSliderValue = value
                     threads = value.roundToInt()
-                }
-            )
-
-            DifficultyCard(
-                difficultyTarget = difficultyTarget,
-                difficultySliderValue = difficultySliderValue,
-                onDifficultySliderChange = { value ->
-                    difficultySliderValue = value
-                    difficultyTarget = value.roundToInt()
+                    onThreadsUpdate(value.roundToInt())
                 }
             )
 
@@ -149,7 +139,8 @@ private fun Preview() {
         ConfigScreen(
             config = MiningConfig(),
             onSaveConfig = {},
-            onNavigateBack = {}
+            onNavigateBack = {},
+            onThreadsUpdate = {}
         )
     }
 }
