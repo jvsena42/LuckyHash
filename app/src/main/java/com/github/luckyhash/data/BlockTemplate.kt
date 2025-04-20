@@ -9,5 +9,6 @@ data class BlockTemplate(
     val merkleRoot: String = "",              // Merkle root of transactions
     val timestamp: Int = (System.currentTimeMillis() / 1000).toInt(), // Current timestamp
     val bits: String = "",                    // Compact form of the target
-    val height: Int = 0                       // Block height
+    val height: Int = 0,                     // Block height
+    val difficulty: Int = 1                       // Difficulty
 )

@@ -28,6 +28,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.math.BigInteger
 import java.security.MessageDigest
+import kotlin.math.roundToInt
 
 class MiningRepository(
     private val dataStore: DataStore<androidx.datastore.preferences.core.Preferences>
@@ -83,6 +84,15 @@ class MiningRepository(
         // Update target difficulty in current stats
         _miningStats.value = _miningStats.value.copy(targetDifficulty = config.difficultyTarget)
     }
+    // Save mining configuration
+    suspend fun updateDifficulty(difficulty: Int) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.DIFFICULTY_TARGET] = difficulty
+        }
+
+        // Update target difficulty in current stats
+        _miningStats.value = _miningStats.value.copy(targetDifficulty = difficulty)
+    }
 
     // Start mining
     fun startMining(threads: Int = 1) {
@@ -104,6 +114,8 @@ class MiningRepository(
                 val blockTemplate = fetchLatestBlockTemplate()
                 Log.d(TAG, "startMining: blockTemplate: $blockTemplate")
                 _miningStats.value = _miningStats.value.copy(currentBlock = blockTemplate)
+
+                updateDifficulty(blockTemplate.difficulty)
 
                 // Start mining on multiple threads
                 repeat(threads) {
@@ -159,7 +171,8 @@ class MiningRepository(
             merkleRoot = blockInfo.merkle_root,
             timestamp = blockInfo.timestamp,
             bits = blockInfo.bits.toString(16), // Convert to hex string
-            height = blockInfo.height
+            height = blockInfo.height,
+            difficulty = latestBlock.difficulty.roundToInt()
         )
     }
 
