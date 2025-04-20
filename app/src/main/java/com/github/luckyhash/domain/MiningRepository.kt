@@ -92,6 +92,7 @@ class MiningRepository(
 
         // Update target difficulty in current stats
         _miningStats.value = _miningStats.value.copy(targetDifficulty = difficulty)
+        Log.i(TAG, "updateDifficulty: $difficulty")
     }
 
     // Start mining
