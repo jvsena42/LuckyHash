@@ -87,6 +87,7 @@ class MiningRepository(
             preferences[PreferencesKeys.RUN_IN_BACKGROUND] = config.runInBackground
             preferences[PreferencesKeys.BTC_ADDRESS] = config.bitcoinAddress
         }
+        Log.d(TAG, "saveMiningConfig: $config")
     }
 
     // Start mining
@@ -105,7 +106,7 @@ class MiningRepository(
 
         // Fetch recent block data first
         miningScope.launch {
-            val threads = miningConfig.last().threads
+            val threads = miningConfig.first().threads
             Log.d(TAG, "startMining: threads: $threads")
 
             try {
