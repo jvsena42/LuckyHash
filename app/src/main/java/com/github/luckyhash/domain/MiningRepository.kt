@@ -213,7 +213,7 @@ class MiningRepository(
             timestamp = blockInfo.timestamp,
             bits = blockInfo.bits.toString(16), // Convert to hex string
             height = blockInfo.height.toInt(),
-            difficulty = latestBlock.difficulty.roundToInt()
+            difficulty = latestBlock.difficulty
         )
     }
 
