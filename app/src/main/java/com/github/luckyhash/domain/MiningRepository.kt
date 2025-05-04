@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -125,6 +126,14 @@ class MiningRepository(
                 val mempoolTransactions = fetchMempoolTransactions()
 
                 val selectedTransactions = selectTransactionsForBlock(mempoolTransactions)
+
+                val totalFees = selectedTransactions.sumOf { it.fee ?: 0 }
+
+                val coinbaseTx = createCoinbaseTransaction(
+                    blockHeight = blockTemplate.height,
+                    btcAddress = miningConfig.first().bitcoinAddress,
+                    fees = totalFees
+                )
 
 
                 Log.d(TAG, "startMining: blockTemplate: $blockTemplate")
@@ -232,6 +241,70 @@ class MiningRepository(
         }
 
         return selected
+    }
+
+    private fun createCoinbaseTransaction(blockHeight: Int, btcAddress: String, fees: Long): MempoolTransaction {
+        // Calculate block reward (halving every 210,000 blocks)
+        val halvings = blockHeight / BLOCK_REWARD_HALVING_INTERVAL
+        var blockReward = INITIAL_BLOCK_REWARD
+        repeat(halvings) { blockReward /= 2 }
+
+        val totalReward = blockReward + fees
+
+        // Create a simplified coinbase transaction
+        // TODO In a real implementation, you would need to:
+        // 1. Create proper scriptSig with block height and extra nonce
+        // 2. Create proper P2WPKH scriptPubKey for the recipient address
+        return MempoolTransaction(
+            txid = "coinbase_${System.currentTimeMillis()}",
+            fee = 0,
+            size = 100, // Approximate size for coinbase tx
+            inputs = emptyList(), // Coinbase has no inputs
+            outputs = listOf(
+                MempoolTransaction.Output(
+                    value = totalReward,
+                    scriptPubKey = createP2wpkhScript(btcAddress)
+                )
+            )
+        )
+    }
+
+    private fun createP2wpkhScript(address: String): String {
+        // TODO In a real implementation, you would:
+        // 1. Decode the bech32 address
+        // 2. Create the proper witness program
+        // TODO For now, return a placeholder
+        return "0014${"a".repeat(40)}" // 0x00 (version) + 0x14 (20 bytes) + pubkey hash
+    }
+
+    // Build Merkle tree from transactions
+    private fun buildMerkleTree(transactions: List<MempoolTransaction>): String {
+        if (transactions.isEmpty()) return "0".repeat(64)
+
+        // Start with transaction hashes
+        var hashes = transactions.map { it.txid }
+
+        // If odd number, duplicate last hash
+        if (hashes.size % 2 != 0) {
+            hashes = hashes + hashes.last()
+        }
+
+        // Build tree layers
+        while (hashes.size > 1) {
+            val newLevel = mutableListOf<String>()
+            for (i in hashes.indices step 2) {
+                val combined = hashes[i] + hashes[i + 1]
+                val hash = sha256Twice(hexStringToByteArray(combined)).joinToString("") { "%02x".format(it) }
+                newLevel.add(hash)
+            }
+            hashes = newLevel
+            // If odd number, duplicate last hash
+            if (hashes.size % 2 != 0 && hashes.size > 1) {
+                hashes = hashes + hashes.last()
+            }
+        }
+
+        return hashes.first()
     }
 
     private suspend fun mine(blockTemplate: BlockTemplate) {
