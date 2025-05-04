@@ -63,7 +63,6 @@ class MiningRepository(
         MiningConfig(
             threads = preferences[PreferencesKeys.THREADS] ?: 1,
             runInBackground = preferences[PreferencesKeys.RUN_IN_BACKGROUND] ?: true,
-            difficultyTarget = preferences[PreferencesKeys.DIFFICULTY_TARGET] ?: 119116256505723.5,
             bitcoinAddress = preferences[PreferencesKeys.BTC_ADDRESS].orEmpty().ifBlank { FALLBACK_BTC_ADDRESS }
         )
     }
@@ -88,12 +87,8 @@ class MiningRepository(
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.THREADS] = config.threads
             preferences[PreferencesKeys.RUN_IN_BACKGROUND] = config.runInBackground
-            preferences[PreferencesKeys.DIFFICULTY_TARGET] = config.difficultyTarget
             preferences[PreferencesKeys.BTC_ADDRESS] = config.bitcoinAddress
         }
-
-        // Update target difficulty in current stats
-        _miningStats.value = _miningStats.value.copy(targetDifficulty = config.difficultyTarget)
     }
 
     // Start mining
