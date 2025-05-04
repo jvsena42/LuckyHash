@@ -342,24 +342,17 @@ class MiningRepository(
                 return
             }
 
-            // Check hash result (count leading zeros)
+            // Count leading zeros for statistics
             val leadingZeros = countLeadingZeros(hash)
-
-            // Update best match if found
             if (leadingZeros > bestMatch) {
                 bestMatch = leadingZeros
-                // If we match our target difficulty, we found a valid share
-                if (leadingZeros >= _miningStats.value.targetDifficulty) {
-                    val hashHex = hash.joinToString("") { String.format("%02x", it) }
-                    Log.i(TAG, "mine: Found valid share! Nonce: $nonce, Hash: $hashHex")
-                }
             }
 
             hashCount++
             attemptCount++
             nonce++
 
-            // Update statistics every 1000 hashes
+            // Update statistics periodically
             if (hashCount % 1000 == 0L) {
                 val currentTime = System.currentTimeMillis()
                 val elapsedTimeSeconds = (currentTime - startTime) / 1000.0
@@ -374,13 +367,6 @@ class MiningRepository(
 
                 hashCount = 0
                 attemptCount = 0
-            }
-
-            // Small delay to prevent CPU overload
-            if (hashCount % 100 == 0L) {
-                withContext(Dispatchers.IO) {
-                    Thread.sleep(1)
-                }
             }
         }
     }
