@@ -7,7 +7,7 @@ data class MiningStats(
     val bestMatchBits: Int = 0,
     val isRunning: Boolean = false,
     val startTime: Long = 0L,
-    val targetDifficulty: Int = 1,
+    val targetDifficulty: Double = 119116256505723.5,
     val currentBlock: BlockTemplate? = null,
     val transactionsInBlock: Int = 0,
     val blocksFound: Int = 0,

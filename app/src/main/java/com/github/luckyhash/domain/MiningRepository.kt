@@ -3,6 +3,7 @@ package com.github.luckyhash.domain
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -41,7 +42,7 @@ class MiningRepository(
     private object PreferencesKeys {
         val THREADS = intPreferencesKey("threads")
         val RUN_IN_BACKGROUND = booleanPreferencesKey("run_in_background")
-        val DIFFICULTY_TARGET = intPreferencesKey("difficulty_target")
+        val DIFFICULTY_TARGET = doublePreferencesKey("difficulty_target")
         val BTC_ADDRESS = stringPreferencesKey("btc_address")
     }
 
@@ -62,7 +63,7 @@ class MiningRepository(
         MiningConfig(
             threads = preferences[PreferencesKeys.THREADS] ?: 1,
             runInBackground = preferences[PreferencesKeys.RUN_IN_BACKGROUND] ?: true,
-            difficultyTarget = preferences[PreferencesKeys.DIFFICULTY_TARGET] ?: 1,
+            difficultyTarget = preferences[PreferencesKeys.DIFFICULTY_TARGET] ?: 119116256505723.5,
             bitcoinAddress = preferences[PreferencesKeys.BTC_ADDRESS].orEmpty().ifBlank { FALLBACK_BTC_ADDRESS }
         )
     }
@@ -93,16 +94,6 @@ class MiningRepository(
 
         // Update target difficulty in current stats
         _miningStats.value = _miningStats.value.copy(targetDifficulty = config.difficultyTarget)
-    }
-    // Save mining configuration
-    suspend fun updateDifficulty(difficulty: Int) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.DIFFICULTY_TARGET] = difficulty
-        }
-
-        // Update target difficulty in current stats
-        _miningStats.value = _miningStats.value.copy(targetDifficulty = difficulty)
-        Log.i(TAG, "updateDifficulty: $difficulty")
     }
 
     // Start mining
@@ -309,7 +300,7 @@ class MiningRepository(
 
         val startTime = System.currentTimeMillis()
         val targetDifficulty = _miningStats.value.targetDifficulty
-        val target = BigInteger.ONE.shiftLeft(256 - targetDifficulty)
+        val target = BigInteger.ONE.shiftLeft(256 - targetDifficulty.toInt())
 
         while (isRunning) {
             // Create a block header with the current nonce

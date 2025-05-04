@@ -20,6 +20,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -68,12 +69,10 @@ fun ConfigScreen(
 
     var threads by remember { mutableIntStateOf(config.threads) }
     var runInBackground by remember { mutableStateOf(config.runInBackground) }
-    var difficultyTarget by remember { mutableIntStateOf(config.difficultyTarget) }
     var bitcoinAddress by remember { mutableStateOf(config.bitcoinAddress) }
 
     if (threads != config.threads) threads = config.threads
     if (runInBackground != config.runInBackground) runInBackground = config.runInBackground
-    if (difficultyTarget != config.difficultyTarget) difficultyTarget = config.difficultyTarget
 
     // Thread slider value
     var threadSliderValue by remember { mutableFloatStateOf(threads.toFloat()) }
@@ -129,7 +128,7 @@ fun ConfigScreen(
                     val newConfig = MiningConfig(
                         threads = threads,
                         runInBackground = runInBackground,
-                        difficultyTarget = difficultyTarget
+                        bitcoinAddress = bitcoinAddress
                     )
                     onSaveConfig(newConfig)
                     onNavigateBack()
