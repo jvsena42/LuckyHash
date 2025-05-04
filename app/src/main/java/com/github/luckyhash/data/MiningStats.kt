@@ -8,5 +8,9 @@ data class MiningStats(
     val isRunning: Boolean = false,
     val startTime: Long = 0L,
     val targetDifficulty: Int = 1,
-    val currentBlock: BlockTemplate? = null
+    val currentBlock: BlockTemplate? = null,
+    val transactionsInBlock: Int = 0,
+    val blocksFound: Int = 0,
+    val totalFees: Long = 0,
+    val lastBlockHash: String = "",
 )

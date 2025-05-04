@@ -141,35 +141,24 @@ class MiningRepository(
                 // Build Merkle root
                 val merkleRoot = buildMerkleTree(allTransactions)
 
-                Log.d(TAG, "startMining: blockTemplate: $blockTemplate")
-                _miningStats.value = _miningStats.value.copy(currentBlock = blockTemplate)
+                // Update block template with new merkle root
+                val updatedTemplate = blockTemplate.copy(merkleRoot = merkleRoot)
 
-                updateDifficulty(blockTemplate.difficulty)
+                _miningStats.value = _miningStats.value.copy(
+                    currentBlock = updatedTemplate,
+                    transactionsInBlock = allTransactions.size,
+                    totalFees = totalFees
+                )
 
                 // Start mining on multiple threads
                 repeat(threads) {
                     miningScope.launch {
-                        mine(blockTemplate)
+                        mine(updatedTemplate, allTransactions)
                     }
                 }
             } catch (e: Exception) {
-                // If API fetch fails, use a fallback block template
-                Log.d(TAG, "startMining: Swithing to failback template. Exception ${e.stackTraceToString()}")
-                val fallbackTemplate = BlockTemplate(
-                    previousBlockHash = "000000000000000000037c7c32a34baa4d5f4fd0ca5e8678841d4d219f034749",
-                    merkleRoot = "bb37f74134215f0c1b499d42342befed3babe1a0285cd212b50a6f831cc38f75",
-                    timestamp = (System.currentTimeMillis() / 1000).toInt(),
-                    bits = "386689514"
-                )
-
-                _miningStats.value = _miningStats.value.copy(currentBlock = fallbackTemplate)
-
-                // Start mining with fallback template
-                repeat(threads) {
-                    miningScope.launch {
-                        mine(fallbackTemplate)
-                    }
-                }
+                Log.e(TAG, "Error in mining setup: ${e.message}", e)
+                stopMining()
             }
         }
     }
@@ -312,21 +301,45 @@ class MiningRepository(
         return hashes.first()
     }
 
-    private suspend fun mine(blockTemplate: BlockTemplate) {
+    private suspend fun mine(blockTemplate: BlockTemplate, transactions: List<MempoolTransaction>) {
         var hashCount = 0L
         var attemptCount = 0L
         var bestMatch = 0
         var nonce = 0
 
         val startTime = System.currentTimeMillis()
+        val targetDifficulty = _miningStats.value.targetDifficulty
+        val target = BigInteger.ONE.shiftLeft(256 - targetDifficulty)
 
         while (isRunning) {
             // Create a block header with the current nonce
             val blockHeader = createBlockHeader(blockTemplate, nonce)
 
             // Double SHA-256 hash (Bitcoin standard)
-            val hash = withContext(Dispatchers.IO) {
+            val hash = withContext(Dispatchers.Default) {
                 sha256Twice(blockHeader)
+            }
+
+            // Convert hash to BigInteger for difficulty comparison
+            val hashInt = BigInteger(1, hash)
+
+            // Check if hash meets target difficulty
+            if (hashInt < target) {
+                val hashHex = hash.joinToString("") { String.format("%02x", it) }
+                Log.i(TAG, "Block found! Nonce: $nonce, Hash: $hashHex")
+
+                // Update stats
+                _miningStats.value = _miningStats.value.copy(
+                    blocksFound = _miningStats.value.blocksFound + 1,
+                    lastBlockHash = hashHex
+                )
+
+                // Conceptually broadcast the block
+                broadcastBlock(blockTemplate.copy(nonce = nonce), transactions)
+
+                // Start mining new block
+                startMining()
+                return
             }
 
             // Check hash result (count leading zeros)
