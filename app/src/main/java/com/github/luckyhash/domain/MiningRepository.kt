@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.github.luckyhash.data.BlockInfo
 import com.github.luckyhash.data.BlockTemplate
 import com.github.luckyhash.data.MempoolBlock
+import com.github.luckyhash.data.MempoolTransaction
 import com.github.luckyhash.data.MiningConfig
 import com.github.luckyhash.data.MiningStats
 import io.ktor.client.HttpClient
@@ -45,6 +46,10 @@ class MiningRepository(
 
     companion object {
         const val TAG = "MiningRepository"
+        const val BLOCK_REWARD_HALVING_INTERVAL = 210000
+        const val FALLBACK_BTC_ADDRESS = "bc1qn5n9shs0q6d0l9k60rfy27xkj07wmf0ltkccqv"
+        const val INITIAL_BLOCK_REWARD = 50 * 100_000_000L // 50 BTC in satoshis
+        const val MAX_BLOCK_SIZE_BYTES = 1_000_000 // Simplified block size limit
     }
 
     // Mining statistics
@@ -57,7 +62,7 @@ class MiningRepository(
             threads = preferences[PreferencesKeys.THREADS] ?: 1,
             runInBackground = preferences[PreferencesKeys.RUN_IN_BACKGROUND] ?: true,
             difficultyTarget = preferences[PreferencesKeys.DIFFICULTY_TARGET] ?: 1,
-            bitcoinAddress = preferences[PreferencesKeys.BTC_ADDRESS].orEmpty()
+            bitcoinAddress = preferences[PreferencesKeys.BTC_ADDRESS].orEmpty().ifBlank { FALLBACK_BTC_ADDRESS }
         )
     }
 
@@ -117,6 +122,11 @@ class MiningRepository(
         miningScope.launch {
             try {
                 val blockTemplate = fetchLatestBlockTemplate()
+                val mempoolTransactions = fetchMempoolTransactions()
+
+                val selectedTransactions = selectTransactionsForBlock(mempoolTransactions)
+
+
                 Log.d(TAG, "startMining: blockTemplate: $blockTemplate")
                 _miningStats.value = _miningStats.value.copy(currentBlock = blockTemplate)
 
@@ -156,6 +166,29 @@ class MiningRepository(
         _miningStats.value = _miningStats.value.copy(isRunning = false)
     }
 
+    private suspend fun fetchMempoolTransactions(): List<MempoolTransaction> = withContext(Dispatchers.IO) {
+        try {
+            Log.d(TAG, "Fetching mempool transactions")
+            val txIds: List<String> = client.get("https://mempool.space/api/mempool/txids").body()
+
+            // Limit to top 100 transactions for simplicity
+            val limitedTxIds = txIds.take(100)
+
+            // Fetch details for each transaction
+            limitedTxIds.mapNotNull { txId ->
+                try {
+                    client.get("https://mempool.space/api/tx/$txId").body<MempoolTransaction>()
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to fetch transaction $txId: ${e.message}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fetch mempool transactions: ${e.message}")
+            emptyList()
+        }
+    }
+
     private suspend fun fetchLatestBlockTemplate(): BlockTemplate = withContext(Dispatchers.IO) {
         Log.d(TAG, "fetchLatestBlockTemplate: ")
         // Get recent blocks from mempool.space API
@@ -179,6 +212,26 @@ class MiningRepository(
             height = blockInfo.height.toInt(),
             difficulty = latestBlock.difficulty.roundToInt()
         )
+    }
+
+    private fun selectTransactionsForBlock(transactions: List<MempoolTransaction>): List<MempoolTransaction> {
+        // Sort by fee rate (higher first)
+        val sorted = transactions.sortedByDescending { it.fee?.toDouble()?.div((it.size ?: 1)) }
+
+        // Select transactions until we reach block size limit
+        var currentSize = 0
+        val selected = mutableListOf<MempoolTransaction>()
+
+        for (tx in sorted) {
+            if (currentSize + (tx.size ?: 0) <= MAX_BLOCK_SIZE_BYTES) {
+                selected.add(tx)
+                currentSize += tx.size ?: 0
+            } else {
+                break
+            }
+        }
+
+        return selected
     }
 
     private suspend fun mine(blockTemplate: BlockTemplate) {
