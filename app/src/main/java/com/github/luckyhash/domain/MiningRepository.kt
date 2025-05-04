@@ -3,7 +3,6 @@ package com.github.luckyhash.domain
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -26,13 +25,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.math.BigInteger
 import java.security.MessageDigest
-import kotlin.math.roundToInt
 
 class MiningRepository(
     private val dataStore: DataStore<androidx.datastore.preferences.core.Preferences>
@@ -42,7 +41,6 @@ class MiningRepository(
     private object PreferencesKeys {
         val THREADS = intPreferencesKey("threads")
         val RUN_IN_BACKGROUND = booleanPreferencesKey("run_in_background")
-        val DIFFICULTY_TARGET = doublePreferencesKey("difficulty_target")
         val BTC_ADDRESS = stringPreferencesKey("btc_address")
     }
 
@@ -92,8 +90,8 @@ class MiningRepository(
     }
 
     // Start mining
-    fun startMining(threads: Int = 1) {
-        Log.d(TAG, "startMining: threads: $threads")
+    fun startMining() {
+        Log.d(TAG, "startMining")
         if (isRunning) return
 
         isRunning = true
@@ -107,6 +105,9 @@ class MiningRepository(
 
         // Fetch recent block data first
         miningScope.launch {
+            val threads = miningConfig.last().threads
+            Log.d(TAG, "startMining: threads: $threads")
+
             try {
                 val blockTemplate = fetchLatestBlockTemplate()
                 val mempoolTransactions = fetchMempoolTransactions()

@@ -29,7 +29,7 @@ class StatsViewModel (
         if (config.runInBackground) {
             viewModelScope.sendEvent(StatsEvents.StartService)
         } else {
-            miningRepository.startMining(config.threads)
+            miningRepository.startMining()
         }
     }
 

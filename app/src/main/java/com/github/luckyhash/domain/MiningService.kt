@@ -13,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
@@ -30,9 +29,8 @@ class MiningService : Service() {
 
     private fun setupService() {
         serviceScope.launch {
-            val config = miningRepository.miningConfig.first()
             startForeground(NOTIFICATION_ID, createNotification())
-            miningRepository.startMining(config.threads)
+            miningRepository.startMining()
 
             launch {
                 miningRepository.miningStats.collect { stats ->
