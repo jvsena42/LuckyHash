@@ -8,13 +8,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -68,6 +69,7 @@ fun ConfigScreen(
     var threads by remember { mutableIntStateOf(config.threads) }
     var runInBackground by remember { mutableStateOf(config.runInBackground) }
     var difficultyTarget by remember { mutableIntStateOf(config.difficultyTarget) }
+    var bitcoinAddress by remember { mutableStateOf(config.bitcoinAddress) }
 
     if (threads != config.threads) threads = config.threads
     if (runInBackground != config.runInBackground) runInBackground = config.runInBackground
@@ -82,7 +84,7 @@ fun ConfigScreen(
                 title = { Text("Mining Settings") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -103,6 +105,14 @@ fun ConfigScreen(
                     threads = value.roundToInt()
                     onThreadsUpdate(value.roundToInt())
                 }
+            )
+
+            TextField(
+                value = bitcoinAddress,
+                onValueChange = { newText-> bitcoinAddress = newText.filterNot{ it.isWhitespace() } },
+                label = { Text("Set your Bitcoin address") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
             )
 
             BackgroundCard(

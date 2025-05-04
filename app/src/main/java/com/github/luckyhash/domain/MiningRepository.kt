@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.github.luckyhash.data.BlockInfo
 import com.github.luckyhash.data.BlockTemplate
 import com.github.luckyhash.data.MempoolBlock
@@ -39,6 +40,7 @@ class MiningRepository(
         val THREADS = intPreferencesKey("threads")
         val RUN_IN_BACKGROUND = booleanPreferencesKey("run_in_background")
         val DIFFICULTY_TARGET = intPreferencesKey("difficulty_target")
+        val BTC_ADDRESS = stringPreferencesKey("btc_address")
     }
 
     companion object {
@@ -54,7 +56,8 @@ class MiningRepository(
         MiningConfig(
             threads = preferences[PreferencesKeys.THREADS] ?: 1,
             runInBackground = preferences[PreferencesKeys.RUN_IN_BACKGROUND] ?: true,
-            difficultyTarget = preferences[PreferencesKeys.DIFFICULTY_TARGET] ?: 1
+            difficultyTarget = preferences[PreferencesKeys.DIFFICULTY_TARGET] ?: 1,
+            bitcoinAddress = preferences[PreferencesKeys.BTC_ADDRESS].orEmpty()
         )
     }
 
@@ -79,6 +82,7 @@ class MiningRepository(
             preferences[PreferencesKeys.THREADS] = config.threads
             preferences[PreferencesKeys.RUN_IN_BACKGROUND] = config.runInBackground
             preferences[PreferencesKeys.DIFFICULTY_TARGET] = config.difficultyTarget
+            preferences[PreferencesKeys.BTC_ADDRESS] = config.bitcoinAddress
         }
 
         // Update target difficulty in current stats
