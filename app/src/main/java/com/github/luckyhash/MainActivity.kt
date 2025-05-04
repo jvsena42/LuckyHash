@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.github.luckyhash.domain.MiningService
 import com.github.luckyhash.ui.navigation.AppNavHost
 import com.github.luckyhash.ui.theme.LuckyHashTheme
+import org.koin.compose.KoinContext
 
 class MainActivity : ComponentActivity() {
 
@@ -33,26 +34,28 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         setContent {
-            LuckyHashTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    val navController = rememberNavController()
-                    AppNavHost(
-                        navController = navController,
-                        startService = {
-                            startService(
-                                Intent(
-                                    this@MainActivity,
-                                    MiningService::class.java
+            KoinContext {
+                LuckyHashTheme {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        val navController = rememberNavController()
+                        AppNavHost(
+                            navController = navController,
+                            startService = {
+                                startService(
+                                    Intent(
+                                        this@MainActivity,
+                                        MiningService::class.java
+                                    )
                                 )
-                            )
-                        },
-                        stopService = {
-                            //TODO IMPLEMENT
-                        }
-                    )
+                            },
+                            stopService = {
+                                //TODO IMPLEMENT
+                            }
+                        )
+                    }
                 }
             }
         }
