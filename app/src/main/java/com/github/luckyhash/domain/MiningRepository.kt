@@ -134,7 +134,9 @@ class MiningRepository(
                     btcAddress = miningConfig.first().bitcoinAddress,
                     fees = totalFees
                 )
-
+                
+                // Combine all transactions (coinbase first)
+                val allTransactions = listOf(coinbaseTx) + selectedTransactions
 
                 Log.d(TAG, "startMining: blockTemplate: $blockTemplate")
                 _miningStats.value = _miningStats.value.copy(currentBlock = blockTemplate)
