@@ -144,7 +144,7 @@ fun StatsCard(stats: MiningStats) {
             StatsRow("Total Hashes:", formatLargeNumber(stats.totalHashes))
             StatsRow("Total Attempts:", formatLargeNumber(stats.attemptsCount))
             StatsRow("Best Match:", "${stats.bestMatchBits} bits")
-            StatsRow("Target Difficulty:", "${stats.targetDifficulty} bits")
+            StatsRow("Target Difficulty:", "${stats.targetDifficulty}")
             StatsRow("Running Time:", formatDuration(stats.startTime))
         }
     }
