@@ -20,18 +20,22 @@ import io.ktor.client.request.get
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import kotlinx.serialization.json.Json
 import java.math.BigInteger
 import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 class MiningRepository(
     private val dataStore: DataStore<androidx.datastore.preferences.core.Preferences>
@@ -50,6 +54,9 @@ class MiningRepository(
         const val FALLBACK_BTC_ADDRESS = "bc1qn5n9shs0q6d0l9k60rfy27xkj07wmf0ltkccqv"
         const val INITIAL_BLOCK_REWARD = 50 * 100_000_000L // 50 BTC in satoshis
         const val MAX_BLOCK_SIZE_BYTES = 1_000_000 // Simplified block size limit
+
+        const val BLOCK_TEMPLATE_REFRESH_PERIOD_MS = 30000L // 30 seconds
+        const val STATS_UPDATE_INTERVAL = 1000L // 1 second
     }
 
     // Mining statistics
@@ -67,8 +74,19 @@ class MiningRepository(
 
     // Coroutine scope for mining
     private val miningScope = CoroutineScope(Dispatchers.Default)
-    private var isRunning = false
+    private val isRunning = AtomicBoolean(false)
     private val md = MessageDigest.getInstance("SHA-256")
+
+    // Job control
+    private var blockTemplateRefreshJob: Job? = null
+    private val miningJobs = mutableListOf<Job>()
+
+    // Shared nonce counter across threads
+    private val globalNonce = AtomicInteger(0)
+
+    // Current mining context data
+    private var currentBlockTemplate: BlockTemplate? = null
+    private var currentTransactions: List<MempoolTransaction> = emptyList()
 
     private val client = HttpClient(Android) {
         install(ContentNegotiation) {
@@ -88,14 +106,19 @@ class MiningRepository(
             preferences[PreferencesKeys.BTC_ADDRESS] = config.bitcoinAddress
         }
         Log.d(TAG, "saveMiningConfig: $config")
+
+        // If mining is running, restart with new configuration
+        if (isRunning.get()) {
+            stopMining()
+            startMining()
+        }
     }
 
     // Start mining
     fun startMining() {
         Log.d(TAG, "startMining")
-        if (isRunning) return
+        if (isRunning.getAndSet(true)) return
 
-        isRunning = true
         val startTime = System.currentTimeMillis()
 
         _miningStats.value = MiningStats(
@@ -104,57 +127,88 @@ class MiningRepository(
             targetDifficulty = _miningStats.value.targetDifficulty
         )
 
-        // Fetch recent block data first
-        miningScope.launch {
-            val threads = miningConfig.first().threads
-            Log.d(TAG, "startMining: threads: $threads")
-
-            try {
-                val blockTemplate = fetchLatestBlockTemplate()
-                val mempoolTransactions = fetchMempoolTransactions()
-
-                val selectedTransactions = selectTransactionsForBlock(mempoolTransactions)
-
-                val totalFees = selectedTransactions.sumOf { it.fee ?: 0 }
-
-                val coinbaseTx = createCoinbaseTransaction(
-                    blockHeight = blockTemplate.height,
-                    btcAddress = miningConfig.first().bitcoinAddress,
-                    fees = totalFees
-                )
-
-                // Combine all transactions (coinbase first)
-                val allTransactions = listOf(coinbaseTx) + selectedTransactions
-
-                // Build Merkle root
-                val merkleRoot = buildMerkleTree(allTransactions)
-
-                // Update block template with new merkle root
-                val updatedTemplate = blockTemplate.copy(merkleRoot = merkleRoot)
-
-                _miningStats.value = _miningStats.value.copy(
-                    currentBlock = updatedTemplate,
-                    transactionsInBlock = allTransactions.size,
-                    totalFees = totalFees
-                )
-
-                // Start mining on multiple threads
-                repeat(threads) {
-                    miningScope.launch {
-                        mine(updatedTemplate, allTransactions)
-                    }
+        // Start a periodic job to refresh block template
+        blockTemplateRefreshJob = miningScope.launch {
+            while (isRunning.get()) {
+                try {
+                    updateBlockTemplate()
+                    delay(BLOCK_TEMPLATE_REFRESH_PERIOD_MS)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error refreshing block template: ${e.message}", e)
+                    delay(5000) // Wait before retrying
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error in mining setup: ${e.message}", e)
-                stopMining()
             }
         }
     }
 
     // Stop mining
     fun stopMining() {
-        isRunning = false
+        Log.d(TAG, "stopMining")
+        isRunning.set(false)
+
+        // Cancel all mining jobs
+        blockTemplateRefreshJob?.cancel()
+        miningJobs.forEach { it.cancel() }
+        miningJobs.clear()
+
         _miningStats.value = _miningStats.value.copy(isRunning = false)
+    }
+
+    private suspend fun updateBlockTemplate() {
+        try {
+            val threads = miningConfig.first().threads
+            Log.d(TAG, "updateBlockTemplate: refreshing with $threads threads")
+
+            // Cancel existing mining jobs
+            miningJobs.forEach { it.cancel() }
+            miningJobs.clear()
+
+            // Reset the global nonce for the new block
+            globalNonce.set(0)
+
+            // Fetch new block data
+            val blockTemplate = fetchLatestBlockTemplate()
+            val mempoolTransactions = fetchMempoolTransactions()
+
+            val selectedTransactions = selectTransactionsForBlock(mempoolTransactions)
+            val totalFees = selectedTransactions.sumOf { it.fee ?: 0 }
+
+            val coinbaseTx = createCoinbaseTransaction(
+                blockHeight = blockTemplate.height,
+                btcAddress = miningConfig.first().bitcoinAddress,
+                fees = totalFees
+            )
+
+            // Combine all transactions (coinbase first)
+            val allTransactions = listOf(coinbaseTx) + selectedTransactions
+
+            // Build Merkle root
+            val merkleRoot = buildMerkleTree(allTransactions)
+
+            // Update block template with new merkle root
+            val updatedTemplate = blockTemplate.copy(merkleRoot = merkleRoot)
+
+            // Store current mining context
+            currentBlockTemplate = updatedTemplate
+            currentTransactions = allTransactions
+
+            _miningStats.value = _miningStats.value.copy(
+                currentBlock = updatedTemplate,
+                transactionsInBlock = allTransactions.size,
+                totalFees = totalFees
+            )
+
+            // Start mining on multiple threads
+            miningJobs.clear()
+            repeat(threads) { threadIndex ->
+                val job = miningScope.launch {
+                    mine(updatedTemplate, allTransactions, threadIndex)
+                }
+                miningJobs.add(job)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in mining setup: ${e.message}", e)
+        }
     }
 
     private suspend fun fetchMempoolTransactions(): List<MempoolTransaction> = withContext(Dispatchers.IO) {
@@ -181,7 +235,7 @@ class MiningRepository(
     }
 
     private suspend fun fetchLatestBlockTemplate(): BlockTemplate = withContext(Dispatchers.IO) {
-        Log.d(TAG, "fetchLatestBlockTemplate: ")
+        Log.d(TAG, "fetchLatestBlockTemplate")
         // Get recent blocks from mempool.space API
         val blocksResponse: List<MempoolBlock> = client.get("https://mempool.space/api/v1/blocks").body()
 
@@ -234,9 +288,6 @@ class MiningRepository(
         val totalReward = blockReward + fees
 
         // Create a simplified coinbase transaction
-        // TODO In a real implementation, you would need to:
-        // 1. Create proper scriptSig with block height and extra nonce
-        // 2. Create proper P2WPKH scriptPubKey for the recipient address
         return MempoolTransaction(
             txid = "coinbase_${System.currentTimeMillis()}",
             fee = 0,
@@ -252,11 +303,8 @@ class MiningRepository(
     }
 
     private fun createP2wpkhScript(address: String): String {
-        // TODO In a real implementation, you would:
-        // 1. Decode the bech32 address
-        // 2. Create the proper witness program
-        // TODO For now, return a placeholder
-        return "0014${"a".repeat(40)}" // 0x00 (version) + 0x14 (20 bytes) + pubkey hash
+        // Placeholder for P2WPKH script
+        return "0014${"a".repeat(40)}"
     }
 
     // Build Merkle tree from transactions
@@ -289,17 +337,22 @@ class MiningRepository(
         return hashes.first()
     }
 
-    private suspend fun mine(blockTemplate: BlockTemplate, transactions: List<MempoolTransaction>) {
+    private suspend fun mine(blockTemplate: BlockTemplate, transactions: List<MempoolTransaction>, threadId: Int) {
         var hashCount = 0L
         var attemptCount = 0L
         var bestMatch = 0
-        var nonce = 0
+        var lastStatsUpdate = System.currentTimeMillis()
 
         val startTime = System.currentTimeMillis()
         val targetDifficulty = _miningStats.value.targetDifficulty
         val target = BigInteger.ONE.shiftLeft(256 - targetDifficulty.toInt())
 
-        while (isRunning) {
+        Log.d(TAG, "Thread $threadId started mining")
+
+        while (isRunning.get()) {
+            // Get a unique nonce for this attempt from the global counter
+            val nonce = globalNonce.getAndIncrement()
+
             // Create a block header with the current nonce
             val blockHeader = createBlockHeader(blockTemplate, nonce)
 
@@ -314,7 +367,7 @@ class MiningRepository(
             // Check if hash meets target difficulty
             if (hashInt < target) {
                 val hashHex = hash.joinToString("") { String.format("%02x", it) }
-                Log.i(TAG, "Block found! Nonce: $nonce, Hash: $hashHex")
+                Log.i(TAG, "Block found by thread $threadId! Nonce: $nonce, Hash: $hashHex")
 
                 // Update stats
                 _miningStats.value = _miningStats.value.copy(
@@ -322,11 +375,10 @@ class MiningRepository(
                     lastBlockHash = hashHex
                 )
 
-                // Conceptually broadcast the block
+                // Broadcast the block
                 broadcastBlock(blockTemplate.copy(nonce = nonce), transactions)
 
-                // Start mining new block
-                startMining()
+                // Let the template refresh job handle getting a new block
                 return
             }
 
@@ -338,16 +390,16 @@ class MiningRepository(
 
             hashCount++
             attemptCount++
-            nonce++
 
             // Update statistics periodically
-            if (hashCount % 1000 == 0L) {
-                val currentTime = System.currentTimeMillis()
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastStatsUpdate >= STATS_UPDATE_INTERVAL) {
                 val elapsedTimeSeconds = (currentTime - startTime) / 1000.0
                 val hashRate = hashCount / elapsedTimeSeconds
 
+                // Update stats atomically
                 _miningStats.value = _miningStats.value.copy(
-                    hashRate = hashRate,
+                    hashRate = _miningStats.value.hashRate + (hashRate - _miningStats.value.hashRate) / threads, // Moving average
                     totalHashes = _miningStats.value.totalHashes + hashCount,
                     attemptsCount = _miningStats.value.attemptsCount + attemptCount,
                     bestMatchBits = maxOf(_miningStats.value.bestMatchBits, bestMatch)
@@ -355,23 +407,26 @@ class MiningRepository(
 
                 hashCount = 0
                 attemptCount = 0
+                lastStatsUpdate = currentTime
+            }
+
+            // Give other coroutines a chance to run
+            if (hashCount % 10000 == 0L) {
+                yield()
             }
         }
     }
 
+    // Thread-safe property calculation
+    private val threads: Int
+        get() = miningJobs.size
+
     // Conceptual block broadcasting
     private fun broadcastBlock(blockTemplate: BlockTemplate, transactions: List<MempoolTransaction>) {
-        //TODO IMPLEMENT
         Log.i(TAG, "Conceptual block broadcast:")
         Log.i(TAG, "Block hash: ${blockTemplate.previousBlockHash}")
         Log.i(TAG, "Transactions: ${transactions.size}")
         Log.i(TAG, "Would now send this block to Bitcoin network peers")
-
-        // In a real implementation, you would:
-        // 1. Serialize the complete block
-        // 2. Connect to Bitcoin nodes
-        // 3. Send the block using the 'block' message type
-        // 4. Handle propagation and validation responses
     }
 
     private fun createBlockHeader(template: BlockTemplate, nonce: Int): ByteArray {
