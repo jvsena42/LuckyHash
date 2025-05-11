@@ -21,7 +21,9 @@ import androidx.compose.ui.unit.dp
 fun PerformanceCard(
     threads: Int,
     threadSliderValue: Float,
-    onThreadSliderChange: (Float) -> Unit
+    onThreadSliderChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float>,
+    steps: Int
 ) {
     ElevatedCard(
         modifier = Modifier
@@ -53,8 +55,8 @@ fun PerformanceCard(
             Slider(
                 value = threadSliderValue,
                 onValueChange = onThreadSliderChange,
-                valueRange = 1f..8f,
-                steps = 6,
+                valueRange = valueRange,
+                steps = steps,
                 modifier = Modifier.fillMaxWidth()
             )
 

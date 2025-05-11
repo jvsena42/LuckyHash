@@ -61,4 +61,8 @@ class ConfigViewModel(
         }
 
     }
+
+    fun getAvailableProcessors(): Int {
+        return Runtime.getRuntime().availableProcessors()
+    }
 }

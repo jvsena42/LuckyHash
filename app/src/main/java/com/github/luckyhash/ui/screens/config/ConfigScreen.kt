@@ -42,10 +42,12 @@ fun ConfigScreen(
     viewModel: ConfigViewModel = koinViewModel()
 ) {
     val config by viewModel.miningConfig.collectAsStateWithLifecycle()
+    val availableThreads by remember { mutableIntStateOf(viewModel.getAvailableProcessors()) }
 
     ConfigScreen(
         onNavigateBack = onNavigateBack,
         config = config,
+        availableThreads = availableThreads,
         onThreadsUpdate = { threads -> viewModel.onThreadChange(threads) },
         onAddressChanged = { newAddress ->
             viewModel.handleAddressChange(newAddress)
@@ -58,11 +60,11 @@ fun ConfigScreen(
 @Composable
 private fun ConfigScreen(
     config: MiningConfig,
+    availableThreads: Int,
     onNavigateBack: () -> Unit,
     onThreadsUpdate: (Int) -> Unit,
     onAddressChanged: (String) -> Unit,
 ) {
-
     var threads by remember { mutableIntStateOf(config.threads) }
     var bitcoinAddress by remember { mutableStateOf(config.bitcoinAddress) }
     var threadSliderValue by remember { mutableFloatStateOf(threads.toFloat()) }
@@ -99,12 +101,14 @@ private fun ConfigScreen(
                     threadSliderValue = value
                     threads = value.roundToInt()
                     onThreadsUpdate(value.roundToInt())
-                }
+                },
+                valueRange = 1f..availableThreads.toFloat(),
+                steps = availableThreads - 1
             )
 
             TextField(
                 value = bitcoinAddress,
-                onValueChange = { newText-> bitcoinAddress = newText.filterNot{ it.isWhitespace() } },
+                onValueChange = { newText -> bitcoinAddress = newText.filterNot { it.isWhitespace() } },
                 label = { Text("Set your Bitcoin address") },
                 placeholder = { Text("bc1q...") },
                 singleLine = true,
@@ -129,6 +133,7 @@ private fun Preview() {
     LuckyHashTheme {
         ConfigScreen(
             config = MiningConfig(),
+            availableThreads = 8,
             onNavigateBack = {},
             onThreadsUpdate = {},
             onAddressChanged = {}
