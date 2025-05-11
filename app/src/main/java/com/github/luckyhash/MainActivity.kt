@@ -20,11 +20,6 @@ import org.koin.compose.KoinContext
 
 class MainActivity : ComponentActivity() {
 
-    private val serviceIntent = Intent(
-        this@MainActivity,
-        MiningService::class.java
-    )
-
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { _ ->
@@ -50,12 +45,18 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             startService = {
                                 startService(
-                                    serviceIntent
+                                    Intent(
+                                        this@MainActivity,
+                                        MiningService::class.java
+                                    )
                                 )
                             },
                             stopService = {
                                 stopService(
-                                    serviceIntent
+                                    Intent(
+                                        this@MainActivity,
+                                        MiningService::class.java
+                                    )
                                 )
                             }
                         )

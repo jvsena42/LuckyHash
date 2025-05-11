@@ -13,8 +13,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import kotlin.time.Duration.Companion.seconds
 
 class MiningService : Service() {
 
@@ -77,8 +79,9 @@ class MiningService : Service() {
         Log.d(TAG, "onDestroy: ")
         serviceScope.launch {
             miningRepository.stopMining()
+            delay(1.seconds)
+            serviceScope.cancel()
         }
-        serviceScope.cancel()
         super.onDestroy()
     }
 
