@@ -4,12 +4,16 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Build
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.github.luckyhash.domain.MiningRepository
+import com.github.luckyhash.domain.MiningService
+import com.github.luckyhash.domain.MiningService.Companion.MINING_CHANNEL_ID
+import com.github.luckyhash.domain.MiningStopReceiver
 import com.github.luckyhash.ui.screens.config.ConfigViewModel
 import com.github.luckyhash.ui.screens.stats.StatsViewModel
 import org.koin.android.ext.koin.androidContext
@@ -20,9 +24,7 @@ import org.koin.dsl.module
 
 class LuckyHashApplication : Application() {
 
-    companion object {
-        const val MINING_CHANNEL_ID = "mining_notification_channel"
-    }
+    private lateinit var miningStopReceiver: MiningStopReceiver
 
     override fun onCreate() {
         super.onCreate()
@@ -39,7 +41,31 @@ class LuckyHashApplication : Application() {
                     utilModule
                 )
             )
+
+            miningStopReceiver = MiningStopReceiver()
+            val intentFilter = IntentFilter(
+                MiningService.ACTION_STOP_SERVICE_AND_APP
+            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(miningStopReceiver, intentFilter, RECEIVER_EXPORTED)
+            } else {
+                @Suppress("UnspecifiedRegisterReceiverFlag")
+                registerReceiver(miningStopReceiver, intentFilter)
+            }
         }
+
+    }
+
+    override fun onTerminate() {
+
+        // Unregister the MiningStopReceiver
+        try {
+            unregisterReceiver(miningStopReceiver)
+        } catch (e: Exception) {
+            // Receiver might already be unregistered
+        }
+
+        super.onTerminate()
     }
 
     private fun createNotificationChannel() {

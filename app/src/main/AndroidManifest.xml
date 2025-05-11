@@ -23,6 +23,13 @@
             android:foregroundServiceType="dataSync"
             android:enabled="true"
             android:exported="false" />
+        <receiver
+            android:name=".domain.MiningStopReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.github.luckyhash.domain.action.STOP_SERVICE_AND_APP" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true"
