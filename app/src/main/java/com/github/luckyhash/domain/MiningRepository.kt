@@ -2,7 +2,6 @@ package com.github.luckyhash.domain
 
 import android.util.Log
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -44,7 +43,6 @@ class MiningRepository(
     // Preference keys
     private object PreferencesKeys {
         val THREADS = intPreferencesKey("threads")
-        val RUN_IN_BACKGROUND = booleanPreferencesKey("run_in_background")
         val BTC_ADDRESS = stringPreferencesKey("btc_address")
     }
 
@@ -67,7 +65,6 @@ class MiningRepository(
     val miningConfig: Flow<MiningConfig> = dataStore.data.map { preferences ->
         MiningConfig(
             threads = preferences[PreferencesKeys.THREADS] ?: 1,
-            runInBackground = preferences[PreferencesKeys.RUN_IN_BACKGROUND] ?: true,
             bitcoinAddress = preferences[PreferencesKeys.BTC_ADDRESS].orEmpty().ifBlank { FALLBACK_BTC_ADDRESS }
         )
     }
@@ -102,7 +99,6 @@ class MiningRepository(
     suspend fun saveMiningConfig(config: MiningConfig) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.THREADS] = config.threads
-            preferences[PreferencesKeys.RUN_IN_BACKGROUND] = config.runInBackground
             preferences[PreferencesKeys.BTC_ADDRESS] = config.bitcoinAddress
         }
         Log.d(TAG, "saveMiningConfig: $config")

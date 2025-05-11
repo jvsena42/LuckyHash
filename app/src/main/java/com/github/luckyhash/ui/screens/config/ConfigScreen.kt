@@ -68,11 +68,9 @@ fun ConfigScreen(
 ) {
 
     var threads by remember { mutableIntStateOf(config.threads) }
-    var runInBackground by remember { mutableStateOf(config.runInBackground) }
     var bitcoinAddress by remember { mutableStateOf(config.bitcoinAddress) }
 
     if (threads != config.threads) threads = config.threads
-    if (runInBackground != config.runInBackground) runInBackground = config.runInBackground
 
     // Thread slider value
     var threadSliderValue by remember { mutableFloatStateOf(threads.toFloat()) }
@@ -113,30 +111,6 @@ fun ConfigScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
-
-            BackgroundCard(
-                runInBackground = runInBackground,
-                onRunInBackgroundChange = { value ->
-                    runInBackground = value
-                }
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = {
-                    val newConfig = MiningConfig(
-                        threads = threads,
-                        runInBackground = runInBackground,
-                        bitcoinAddress = bitcoinAddress
-                    )
-                    onSaveConfig(newConfig)
-                    onNavigateBack()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Save Settings")
-            }
         }
     }
 }
