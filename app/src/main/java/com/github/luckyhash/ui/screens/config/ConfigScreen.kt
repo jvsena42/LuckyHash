@@ -3,7 +3,6 @@ package com.github.luckyhash.ui.screens.config
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,7 +19,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,8 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_TABLET
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.luckyhash.data.MiningConfig
-import com.github.luckyhash.ui.components.BackgroundCard
 import com.github.luckyhash.ui.components.PerformanceCard
 import com.github.luckyhash.ui.theme.LuckyHashTheme
 import org.koin.androidx.compose.koinViewModel
@@ -41,36 +39,35 @@ import kotlin.math.roundToInt
 @Composable
 fun ConfigScreen(
     onNavigateBack: () -> Unit,
-    restartService: () -> Unit,
     viewModel: ConfigViewModel = koinViewModel()
 ) {
-    val config by viewModel.miningConfig.collectAsState()
+    val config by viewModel.miningConfig.collectAsStateWithLifecycle()
 
     ConfigScreen(
         onNavigateBack = onNavigateBack,
-        onSaveConfig = { newConfig ->
-            viewModel.saveConfig(newConfig)
-            onNavigateBack()
-            restartService()
-        },
         config = config,
-        onThreadsUpdate = { threads -> viewModel.saveConfig(config.copy(threads = threads)) }
+        onThreadsUpdate = { threads -> viewModel.saveConfig(config.copy(threads = threads)) },
+        onAddressChanged = { newAddress ->
+            viewModel.handleAddressChange(newAddress)
+            onNavigateBack()
+        }
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConfigScreen(
+private fun ConfigScreen(
     config: MiningConfig,
     onNavigateBack: () -> Unit,
     onThreadsUpdate: (Int) -> Unit,
-    onSaveConfig: (MiningConfig) -> Unit
+    onAddressChanged: (String) -> Unit,
 ) {
 
     var threads by remember { mutableIntStateOf(config.threads) }
     var bitcoinAddress by remember { mutableStateOf(config.bitcoinAddress) }
 
     if (threads != config.threads) threads = config.threads
+
 
     // Thread slider value
     var threadSliderValue by remember { mutableFloatStateOf(threads.toFloat()) }
@@ -108,9 +105,19 @@ fun ConfigScreen(
                 value = bitcoinAddress,
                 onValueChange = { newText-> bitcoinAddress = newText.filterNot{ it.isWhitespace() } },
                 label = { Text("Set your Bitcoin address") },
+                placeholder = { Text("bc1q...") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            Button(
+                onClick = {
+                    onAddressChanged(bitcoinAddress)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Save Address")
+            }
         }
     }
 }
@@ -121,9 +128,9 @@ private fun Preview() {
     LuckyHashTheme {
         ConfigScreen(
             config = MiningConfig(),
-            onSaveConfig = {},
             onNavigateBack = {},
-            onThreadsUpdate = {}
+            onThreadsUpdate = {},
+            onAddressChanged = {}
         )
     }
 }

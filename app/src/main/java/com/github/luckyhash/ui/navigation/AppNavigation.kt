@@ -24,10 +24,6 @@ fun AppNavHost(
         composable(Screen.Config.route) {
             ConfigScreen(
                 onNavigateBack = { navController.popBackStack() },
-                restartService = {
-                    stopService()
-                    startService()
-                }
             )
         }
     }

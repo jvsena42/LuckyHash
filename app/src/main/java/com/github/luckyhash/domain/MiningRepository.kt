@@ -35,6 +35,7 @@ import java.math.BigInteger
 import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.time.Duration.Companion.seconds
 
 class MiningRepository(
     private val dataStore: DataStore<androidx.datastore.preferences.core.Preferences>
@@ -106,6 +107,7 @@ class MiningRepository(
         // If mining is running, restart with new configuration
         if (isRunning.get()) {
             stopMining()
+            delay(1.seconds)
             startMining()
         }
     }
