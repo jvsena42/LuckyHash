@@ -46,7 +46,7 @@ fun ConfigScreen(
     ConfigScreen(
         onNavigateBack = onNavigateBack,
         config = config,
-        onThreadsUpdate = { threads -> viewModel.saveConfig(config.copy(threads = threads)) },
+        onThreadsUpdate = { threads -> viewModel.onThreadChange(threads) },
         onAddressChanged = { newAddress ->
             viewModel.handleAddressChange(newAddress)
             onNavigateBack()

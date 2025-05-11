@@ -38,13 +38,6 @@ class ConfigViewModel(
         }
     }
 
-    // Save configuration
-    fun saveConfig(config: MiningConfig) {
-        viewModelScope.launch {
-            miningRepository.saveMiningConfig(config)
-        }
-    }
-
     fun handleAddressChange(newAddress: String) {
 
         val validatedText = newAddress.filterNot{ it.isWhitespace()} //TODO CHECK ALSO VALID ADDRESS
@@ -61,7 +54,7 @@ class ConfigViewModel(
         updateThreadScope.cancel()
         updateThreadScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         updateThreadScope.launch {
-            delay(3.seconds)
+            delay(1.seconds)
             miningRepository.saveMiningConfig(miningConfig.value.copy(
                 threads = threadNumber
             ))
