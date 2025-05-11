@@ -1,4 +1,5 @@
 package com.github.luckyhash.ui.screens.config
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.luckyhash.data.MiningConfig
@@ -27,6 +28,15 @@ class ConfigViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = MiningConfig()
         )
+
+    init {
+        viewModelScope.launch {
+            miningConfig.collect { config ->
+                Log.d("ConfigViewModel", "Mining config: $config")
+
+            }
+        }
+    }
 
     // Save configuration
     fun saveConfig(config: MiningConfig) {

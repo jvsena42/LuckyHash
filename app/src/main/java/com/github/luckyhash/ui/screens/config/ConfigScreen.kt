@@ -17,7 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -65,12 +65,13 @@ private fun ConfigScreen(
 
     var threads by remember { mutableIntStateOf(config.threads) }
     var bitcoinAddress by remember { mutableStateOf(config.bitcoinAddress) }
-
-    if (threads != config.threads) threads = config.threads
-
-
-    // Thread slider value
     var threadSliderValue by remember { mutableFloatStateOf(threads.toFloat()) }
+
+    LaunchedEffect(config) {
+        threads = config.threads
+        bitcoinAddress = config.bitcoinAddress
+        threadSliderValue = config.threads.toFloat()
+    }
 
     Scaffold(
         topBar = {
