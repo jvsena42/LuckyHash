@@ -66,7 +66,7 @@ class MiningRepository(
     val miningConfig: Flow<MiningConfig> = dataStore.data.map { preferences ->
         MiningConfig(
             threads = preferences[PreferencesKeys.THREADS] ?: 1,
-            bitcoinAddress = preferences[PreferencesKeys.BTC_ADDRESS].orEmpty().ifBlank { FALLBACK_BTC_ADDRESS }
+            bitcoinAddress = preferences[PreferencesKeys.BTC_ADDRESS].orEmpty()
         )
     }
 
@@ -173,7 +173,7 @@ class MiningRepository(
 
             val coinbaseTx = createCoinbaseTransaction(
                 blockHeight = blockTemplate.height,
-                btcAddress = miningConfig.first().bitcoinAddress,
+                btcAddress = miningConfig.first().bitcoinAddress.ifBlank { FALLBACK_BTC_ADDRESS },
                 fees = totalFees
             )
 
