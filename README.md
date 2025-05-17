@@ -65,8 +65,10 @@ Hashpot is built natively for Android with a focus on performance and usability:
 ## Screenshots
 
 <div style="display: flex; gap: 20px;">
-  <img src="screenshots/status.png" alt="Status" width="600" height="auto">
-  <img src="screenshots/settings.png" alt="Settings" width="600" height="auto">
+  <img src="screenshots/status_tablet.png" alt="Status" width="800" height="auto">
+  <img src="screenshots/settings_tablet.png" alt="Settings" width="800" height="auto">
+  <img src="screenshots/status_phone.png" alt="Status" width="400" height="auto">
+  <img src="screenshots/settings_phone.png" alt="Settings" width="400" height="auto">
 </div>
 
 ---
