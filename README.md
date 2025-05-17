@@ -1,4 +1,4 @@
-# 🎰 HashPot
+# 🎰 Hashpot
 
 **Mine Bitcoin. Win Big. All while watching your favorite show.**
 
@@ -6,15 +6,15 @@
 
 ## 🪙 Inspiration
 
-Las Vegas — the city of bright lights and jackpots — was the perfect backdrop for **HashPot**. I was inspired by the idea of turning idle devices and entertainment time into a shot at winning, combining the thrill of the **lottery** with the steady pulse of **Bitcoin mining**.
+Las Vegas — the city of bright lights and jackpots — was the perfect backdrop for **Hashpot**. I was inspired by the idea of turning idle devices and entertainment time into a shot at winning, combining the thrill of the **lottery** with the steady pulse of **Bitcoin mining**.
 
-> Imagine watching your favorite TV show while your screen quietly mines in the background — and suddenly, you hit a lucky block. That’s HashPot.
+> Imagine watching your favorite TV show while your screen quietly mines in the background — and suddenly, you hit a lucky block. That’s Hashpot.
 
 ---
 
 ## 💡 What It Does
 
-**HashPot** transforms your Android TV or old tablet into a fun, passive Bitcoin miner — with a twist of luck:
+**Hashpot** transforms your Android TV or old tablet into a fun, passive Bitcoin miner — with a twist of luck:
 
 - ⛏️ Performs lightweight Bitcoin mining tasks
 - 📺 Runs in the background while you stream shows or display useful data
@@ -26,7 +26,7 @@ It’s where crypto meets entertainment.
 
 ## 🛠️ How We Built It
 
-HashPot is built natively for Android with a focus on performance and usability:
+Hashpot is built natively for Android with a focus on performance and usability:
 
 - **Kotlin** for clean, modern Android development
 - **Jetpack Compose** for a responsive, scalable UI
@@ -56,7 +56,7 @@ HashPot is built natively for Android with a focus on performance and usability:
 
 ---
 
-## 🚀 What’s Next for HashPot
+## 🚀 What’s Next for Hashpot
 
 - ⛓️ **Stratum V2 Integration** — for more efficient, secure mining
 - 🌍 Expanding device support and optimizing for lower-power hardware
@@ -72,7 +72,7 @@ HashPot is built natively for Android with a focus on performance and usability:
 ---
 
 Pay me a coffee to speed up this project
-⚡ jvsena42@blink.sv
+> ⚡ jvsena42@blink.sv
 
 ---
 
