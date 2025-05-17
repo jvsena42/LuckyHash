@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.github.luckyhash"
+    namespace = "com.github.hashpot"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.github.luckyhash"
+        applicationId = "com.github.hashpot"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

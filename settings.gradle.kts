@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "LuckyHash"
+rootProject.name = "Hashpot"
 include(":app")
  
