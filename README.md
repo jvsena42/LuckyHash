@@ -6,7 +6,7 @@
 
 ## 🪙 Inspiration
 
-Las Vegas — the city of bright lights, jackpots, and second chances — was the perfect backdrop for **HashPot**. We were inspired by the idea of turning idle devices and entertainment time into a shot at winning, combining the thrill of the **lottery** with the steady pulse of **Bitcoin mining**.
+Las Vegas — the city of bright lights and jackpots — was the perfect backdrop for **HashPot**. I was inspired by the idea of turning idle devices and entertainment time into a shot at winning, combining the thrill of the **lottery** with the steady pulse of **Bitcoin mining**.
 
 > Imagine watching your favorite TV show while your screen quietly mines in the background — and suddenly, you hit a lucky block. That’s HashPot.
 
@@ -49,11 +49,10 @@ HashPot is built natively for Android with a focus on performance and usability:
 
 ---
 
-## 📚 What We Learned
+## 📚 What I Learned
 
 - TV-friendly UX design requires a different mindset than mobile
 - Lightweight Bitcoin mining can introduce new users to blockchain in a friendly way
-- Passive apps with reward mechanics create compelling engagement loops
 
 ---
 
@@ -61,7 +60,6 @@ HashPot is built natively for Android with a focus on performance and usability:
 
 - ⛓️ **Stratum V2 Integration** — for more efficient, secure mining
 - 🌍 Expanding device support and optimizing for lower-power hardware
-- 💬 Potential for social features and pooled luck mechanics
 
 ---
 ## Screenshots
@@ -73,10 +71,10 @@ HashPot is built natively for Android with a focus on performance and usability:
 
 ---
 
-> Built for [Bitcoin++ 25 Las Vegas](https://b25.devpost.com/?_gl=1*1izfkpk*_gcl_au*MTQ2NzY5ODIzMy4xNzM5MDI3Nzky*_ga*MTA5ODMxOTQwNi4xNzM5MDI3Nzkz*_ga_0YHJK3Y10M*MTc0NDU3ODI2MS4xOS4xLjE3NDQ1ODE1NjkuMC4wLjA.)  
-> Powered by Kotlin, Compose, and the Bitcoin spirit.
+Pay me a coffee to speed up this project
+⚡ jvsena42@blink.sv
 
 ---
 
-Pay me a coffee to speed up this project
-fourgrill38@walletofsatoshi.com
+> Built for [Bitcoin++ 25 Las Vegas](https://b25.devpost.com/?_gl=1*1izfkpk*_gcl_au*MTQ2NzY5ODIzMy4xNzM5MDI3Nzky*_ga*MTA5ODMxOTQwNi4xNzM5MDI3Nzkz*_ga_0YHJK3Y10M*MTc0NDU3ODI2MS4xOS4xLjE3NDQ1ODE1NjkuMC4wLjA.)  
+> Powered by Kotlin, Compose, and the Bitcoin spirit.
